@@ -42,6 +42,25 @@ class UserSchema(Schema):
     github = fields.Nested(GithubProfile)
 
 
+class Group(Schema):
+    _account_fields = ('balance',
+                       'created',
+                       'created_formatted',
+                       'created_iso',
+                       'id',
+                       'registered',
+                       'since_created',
+                       'time_registered',
+                       'uid',
+                       'updated',
+                       'updated_local',)
+    names = fields.Nested(UserSchema, many=True, only='name')
+    accounts = fields.Nested(UserSchema, many=True, only=_account_fields)
+    demographics = fields.Nested(UserSchema,
+                                 many=True,
+                                 exclude=_account_fields)
+
+
 class BaseTest(unittest.TestCase):
     def setUp(self):
         pass

@@ -3,7 +3,7 @@ import uuid
 import decimal
 
 from marshmallow import fields, missing, Schema
-from marshmallow.compat import text_type, binary_type
+from marshmallow.compat import text_type, binary_type, basestring
 
 
 __all__ = ['JSONSchema']
@@ -113,7 +113,16 @@ def _from_python_type(field, pytype):
 
 
 def _from_nested_schema(field):
-    schema = JSONSchema().dump(field.nested()).data
+    # `marshmallow.fields.Nested` keyword argument `only` expects
+    # a string, iterable, or `None`, but `marshmallow.Schema` keyword
+    # argument `only` accepts an iterable. Convert from string to
+    # a tuple.
+    if isinstance(field.only, basestring):
+        only = (field.only,)
+    else:
+        only = field.only
+    schema = JSONSchema().dump(field.nested(only=only,
+                                            exclude=field.exclude)).data
     if field.many:
         schema = {
             'type': ["array"] if field.required else ['array', 'null'],

@@ -55,7 +55,7 @@ class Group(Schema):
                        'updated',
                        'updated_local',)
     names = fields.Nested(UserSchema, many=True, only='name')
-    accounts = fields.Nested(UserSchema, many=True, only=_account_fields)
+    accounts = fields.Nested('UserSchema', many=True, only=_account_fields)
     demographics = fields.Nested(UserSchema,
                                  many=True,
                                  exclude=_account_fields)

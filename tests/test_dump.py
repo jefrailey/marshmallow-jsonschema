@@ -2,7 +2,7 @@ from marshmallow import Schema, fields
 from marshmallow_jsonschema import JSONSchema
 from jsonschema import Draft4Validator
 
-from . import BaseTest, UserSchema
+from . import BaseTest, UserSchema, Group
 
 
 class TestDumpSchema(BaseTest):
@@ -68,3 +68,25 @@ class TestDumpSchema(BaseTest):
         dumped = json_schema.dump(schema).data
         self.assertEqual(dumped['properties']['favourite_colour'],
                         {'type': 'string'})
+
+    def test_nested_only_exclude(self):
+
+        schema = Group()
+        json_schema = JSONSchema()
+        dumped = json_schema.dump(schema).data
+        for key, field in schema.declared_fields.items():
+            original_fields = field.schema.declared_fields.keys()
+            nested_dict = dumped['properties'][key]['items']['properties']
+            actual_properties = list(nested_dict.keys())
+            if field.only:  # only takes precedence over exclude
+                if isinstance(field.only, str):
+                    expected_properties = [field.only]
+                else:
+                    expected_properties = list(field.only)
+            elif field.exclude:
+                expected_properties = list(original_fields -
+                                           set(field.exclude))
+            else:
+                expected_properties = original_fields
+            self.assertEqual(sorted(expected_properties),
+                             sorted(actual_properties))
